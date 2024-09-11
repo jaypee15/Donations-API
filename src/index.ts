@@ -24,7 +24,6 @@ app.use(passport.initialize());
 // Connect to MongoDB
 connectDB();
 
-
 // Apply rate limiting to all requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -37,8 +36,8 @@ app.use(limiter);
 // Apply Helmet middleware for security
 app.use(helmet());
 
-
-app.use(cors());
+// Configure CORS to allow all origins
+app.use(cors()); 
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -47,16 +46,18 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/users', userRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/donations', donationRoutes);
+
+// Handle 404 errors
 app.use("*", (req, res, next) => {
   res.status(404).json({ message: "route not found" });
 });
 
+// Error handling middleware
 app.use(ErrorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
 
 export default app;

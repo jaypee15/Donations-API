@@ -1,8 +1,8 @@
 import express from 'express';
-import { createUser, loginUser, createTransactionPin } from '../controllers/userController';
+import { createUser, loginUser, createTransactionPin, getAllUsers } from '../controllers/userController';
 import { authenticateJWT } from '../middleware/auth';
 import { validateRequest } from '../middleware/validateRequest';
-import { userSchema, loginSchema, transactionPinSchema } from '../utils/validationSchemas';
+import { transactionPinSchema, userSchema, loginSchema } from '../utils/validationSchemas';
 
 const router = express.Router();
 
@@ -113,5 +113,36 @@ router.post('/login', validateRequest(loginSchema), loginUser);
  *         description: Server error
  */
 router.post('/transaction-pin', authenticateJWT, validateRequest(transactionPinSchema), createTransactionPin);
+
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/', authenticateJWT, getAllUsers); // Route to get all users
 
 export default router;

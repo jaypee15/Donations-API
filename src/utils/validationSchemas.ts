@@ -17,8 +17,7 @@ export const transactionPinSchema = Joi.object({
 });
 
 export const donationSchema = Joi.object({
-  donorId: Joi.string().required(),
-  beneficiaryId: Joi.string().required(),
+  beneficiaryEmail: Joi.string().email().required(),
   amount: Joi.number().positive().required(),
 });
 
@@ -27,7 +26,8 @@ export const walletSchema = Joi.object({
 });
 
 export const donationPeriodSchema = Joi.object({
-  userId: Joi.string().required(),
   startDate: Joi.date().iso().required(),
   endDate: Joi.date().iso().min(Joi.ref('startDate')).required(),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).default(10),
 });

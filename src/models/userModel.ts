@@ -13,7 +13,7 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
-  transactionPin: { type: String, required: true },
+  transactionPin: { type: String, required: true, default: '0000' },
 });
 
 userSchema.pre<IUser>('save', async function (next) {

@@ -35,7 +35,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/:userId', authenticateJWT, validateRequest(walletSchema), getWallet);
+router.get('/:userId', authenticateJWT, validateRequest(walletSchema, 'params'), getWallet);
 
 /**
  * @swagger

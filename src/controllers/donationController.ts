@@ -5,46 +5,62 @@ import User from '../models/userModel';
 import Wallet from '../models/walletModel';
 import { sendThankYouMessage } from '../services/communicationService';
 import { ErrorObject } from '../utils/error';
+import { IUser } from '../models/userModel';
 
 export const createDonation = asyncHandler(async (req: Request, res: Response) => {
-  const { donorId, beneficiaryId, amount } = req.body;
-  
-  const donorWallet = await Wallet.findOne({ userId: donorId });
+  const { beneficiaryEmail, amount } = req.body;
+  const donorEmail = (req.user as IUser)?.email
+
+  const donor = await User.findOne({ email: donorEmail });
+  const beneficiary = await User.findOne({ email: beneficiaryEmail });
+
+  if (!donor) {
+    throw new ErrorObject("Donor not found", 404);
+  }
+
+  const donorWallet = await Wallet.findOne({ userId: donor._id });
   if (!donorWallet || donorWallet.balance < amount) {
     throw new ErrorObject("Insufficient balance", 400);
   }
 
-  const donation = new Donation({ donorId, beneficiaryId, amount });
+  const donation = new Donation({ donorEmail, beneficiaryEmail, amount });
   await donation.save();
 
   donorWallet.balance -= amount;
   await donorWallet.save();
 
-  const beneficiaryWallet = await Wallet.findOne({ userId: beneficiaryId });
+  const beneficiaryWallet = await Wallet.findOne({ userId: beneficiary?._id });
   if (beneficiaryWallet) {
     beneficiaryWallet.balance += amount;
     await beneficiaryWallet.save();
   }
 
-  const donationCount = await Donation.countDocuments({ donorId });
+  const donationCount = await Donation.countDocuments({ donorEmail });
   if (donationCount >= 2) {
-    const donor = await User.findById(donorId);
-    if (donor) {
-      await sendThankYouMessage(donor.email);
-    }
+    await sendThankYouMessage(donor.email);
   }
 
-  res.status(201).json({ message: 'Donation created successfully' });
+  res.status(201).json({ message: `Donation successfull: you sent ${amount} points to ${beneficiaryEmail}` });
 });
 
 export const getDonationCount = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const count = await Donation.countDocuments({ donorId: userId });
+  const donorEmail = (req.user as IUser)?.email;
+
+  if (!donorEmail) {
+    throw new ErrorObject("Unauthorized: User email not found", 401);
+  }
+
+  const count = await Donation.countDocuments({ donorEmail });
   res.json({ count });
 });
 
 export const getDonationsByPeriod = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const donorEmail = (req.user as IUser)?.email;
+
+  if (!donorEmail) {
+    throw new ErrorObject("Unauthorized: User email not found", 401);
+  }
+
   const { startDate, endDate } = req.query;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
@@ -52,13 +68,16 @@ export const getDonationsByPeriod = asyncHandler(async (req: Request, res: Respo
   const startIndex = (page - 1) * limit;
 
   const totalDonations = await Donation.countDocuments({
-    donorId: userId,
+    donorEmail,
     createdAt: { $gte: startDate, $lte: endDate }
   });
 
   const donations = await Donation.find({
-    donorId: userId,
-    createdAt: { $gte: startDate, $lte: endDate }
+    donorEmail,
+    createdAt: { 
+      $gte: new Date(startDate as string), 
+      $lte: new Date(new Date(endDate as string).setHours(23, 59, 59, 999))
+    }
   })
     .skip(startIndex)
     .limit(limit)

@@ -21,13 +21,10 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - donorId
- *               - beneficiaryId
+ *               - beneficiaryEmail
  *               - amount
  *             properties:
- *               donorId:
- *                 type: string
- *               beneficiaryId:
+ *               beneficiaryEmail:
  *                 type: string
  *               amount:
  *                 type: number
@@ -45,18 +42,12 @@ router.post('/', authenticateJWT, validateRequest(donationSchema), createDonatio
 
 /**
  * @swagger
- * /api/donations/count/{userId}:
+ * /api/donations/count:
  *   get:
- *     summary: Get donation count for a user
+ *     summary: Get donation count for currently logged in user
  *     tags: [Donations]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Successful response
@@ -72,22 +63,17 @@ router.post('/', authenticateJWT, validateRequest(donationSchema), createDonatio
  *       500:
  *         description: Server error
  */
-router.get('/count/:userId', authenticateJWT, getDonationCount);
+router.get('/count', authenticateJWT,  getDonationCount); 
 
 /**
  * @swagger
- * /api/donations/period/{userId}:
+ * /api/donations/period:
  *   get:
- *     summary: Get paginated donations for a user within a specific period
+ *     summary: Get paginated donations for currently logged in user within a specific period
  *     tags: [Donations]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
  *       - in: query
  *         name: startDate
  *         required: true
@@ -133,7 +119,7 @@ router.get('/count/:userId', authenticateJWT, getDonationCount);
  *       500:
  *         description: Server error
  */
-router.get('/period/:userId', authenticateJWT, validateRequest(donationPeriodSchema, 'query'), getDonationsByPeriod);
+router.get('/period', authenticateJWT, validateRequest(donationPeriodSchema, 'query'), getDonationsByPeriod); 
 
 /**
  * @swagger

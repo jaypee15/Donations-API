@@ -33,16 +33,29 @@ const prodError = (err: ErrorObject, res: Response) => {
   }
 };
 
-const ErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  let error = err instanceof ErrorObject ? err : new ErrorObject(err.message, 500);
-
-  if (NODE_ENV === "development") {
-    devError(error, res);
-  } else {
-    if (err.name === "CastError") error = handleCastError(err as any);
-    if (err.name === "JsonWebTokenError") error = handleWebTokenError(err);
-    prodError(error, res);
+const ErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+  // Handle duplicate key error
+  if (err.name === 'MongoError' && err.code === 11000) {
+    return res.status(409).json({
+      status: 'error',
+      message: 'Email already in use. Please use a different email address.',
+    });
   }
+
+  // Handle other known errors
+  if (err instanceof ErrorObject) {
+    return res.status(err.statusCode).json({
+      status: 'error',
+      message: err.message,
+    });
+  }
+
+  // Handle generic server errors
+  console.error(err); // Log the error for debugging
+  res.status(500).json({
+    status: 'error',
+    message: 'An error occurred. Please try again later.',
+  });
 };
 
 export default ErrorHandler;
