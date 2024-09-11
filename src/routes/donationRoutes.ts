@@ -78,7 +78,7 @@ router.get('/count/:userId', authenticateJWT, getDonationCount);
  * @swagger
  * /api/donations/period/{userId}:
  *   get:
- *     summary: Get donations for a user within a specific period
+ *     summary: Get paginated donations for a user within a specific period
  *     tags: [Donations]
  *     security:
  *       - bearerAuth: []
@@ -100,15 +100,34 @@ router.get('/count/:userId', authenticateJWT, getDonationCount);
  *         schema:
  *           type: string
  *           format: date
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Donation'
+ *               type: object
+ *               properties:
+ *                 currentPage:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 totalDonations:
+ *                   type: integer
+ *                 donations:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Donation'
  *       401:
  *         description: Unauthorized
  *       500:

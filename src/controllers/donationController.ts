@@ -46,11 +46,30 @@ export const getDonationCount = asyncHandler(async (req: Request, res: Response)
 export const getDonationsByPeriod = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params;
   const { startDate, endDate } = req.query;
-  const donations = await Donation.find({
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  const startIndex = (page - 1) * limit;
+
+  const totalDonations = await Donation.countDocuments({
     donorId: userId,
     createdAt: { $gte: startDate, $lte: endDate }
   });
-  res.json(donations);
+
+  const donations = await Donation.find({
+    donorId: userId,
+    createdAt: { $gte: startDate, $lte: endDate }
+  })
+    .skip(startIndex)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  res.json({
+    currentPage: page,
+    totalPages: Math.ceil(totalDonations / limit),
+    totalDonations,
+    donations
+  });
 });
 
 export const getSingleDonation = asyncHandler(async (req: Request, res: Response) => {

@@ -1,0 +1,33 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 30
+      arrivalRate: 10
+      name: Startup phase
+  http:
+    timeout: 5
+    pool: 'keep-alive'
+
+scenarios:
+  - flow:
+      - get:
+          url: '/api/users/register'
+          json:
+            email: "test@example.com"
+            password: "password"
+            name: "Test User"
+      - post:
+          url: '/api/users/login'
+          json:
+            email: "test@example.com"
+            password: "password"
+      - post:
+          url: '/api/donations'
+          json:
+            donorId: "donorIdHere"
+            beneficiaryId: "beneficiaryIdHere"
+            amount: 10
+      - get:
+          url: '/api/donations/count/donorIdHere'
+      - get:
+          url: '/api/donations/period/donorIdHere?startDate=2023-01-01&endDate=2023-12-31&page=1&limit=10'

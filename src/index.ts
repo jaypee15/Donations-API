@@ -9,6 +9,9 @@ import donationRoutes from './routes/donationRoutes';
 import { connectDB } from './config/database';
 import ErrorHandler from './middleware/error-handler';
 import passport from './config/passport';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -24,6 +27,21 @@ connectDB();
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Apply rate limiting to all requests
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests, please try again later.',
+});
+
+app.use(limiter);
+
+// Apply Helmet middleware for security
+app.use(helmet());
+
+
+app.use(cors());
+
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/wallets', walletRoutes);
@@ -38,5 +56,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 export default app;
