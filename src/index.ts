@@ -24,8 +24,6 @@ app.use(passport.initialize());
 // Connect to MongoDB
 connectDB();
 
-// Swagger documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Apply rate limiting to all requests
 const limiter = rateLimit({
@@ -41,6 +39,9 @@ app.use(helmet());
 
 
 app.use(cors());
+
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/api/users', userRoutes);
