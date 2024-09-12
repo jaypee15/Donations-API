@@ -31,7 +31,7 @@ const limiter = rateLimit({
   message: 'Too many requests, please try again later.',
 });
 
-app.use(limiter);
+// app.use(limiter);
 
 // Apply Helmet middleware for security
 app.use(helmet());
